@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chi tiết văn bản</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <div class="container mt-3">
+        <div class="d-flex justify-content-between align-items-center">
+            <h3 id="documentTitle">Chi tiết văn bản</h3>
+            <div>
+                <button class="btn btn-success"><i class="bi bi-check-lg"></i> Phê duyệt</button>
+                <button class="btn btn-primary">Chuyển tiếp</button>
+                <button class="btn btn-warning" id="editButton">Sửa</button>
+                <button class="btn btn-danger">Xóa</button>
+            </div>
+        </div>
+        
+        <div class="card mt-3" id="documentDetails">
+            <div class="card-body">
+                <h5 class="card-title">Thông tin chung</h5>
+                <p><strong>Số văn bản:</strong> <span id="soVanBan"></span></p>
+                <p><strong>Nơi nhận:</strong> <span id="noiNhan"></span></p>
+                <p><strong>Người ký:</strong> <span id="nguoiKy"></span></p>
+                <p><strong>Ngày ký:</strong> <span id="ngayKy"></span></p>
+                <p><strong>Bộ phận phát hành:</strong> <span id="boPhanPhatHanh"></span></p>
+                <p><strong>Ngày phát hành:</strong> <span id="ngayPhatHanh"></span></p>
+                <p><strong>Loại văn bản:</strong> <span id="loaiVanBan"></span></p>
+                <p><strong>Người xử lý:</strong> <span id="nguoiXuLy"></span></p>
+            </div>
+        </div>
+
+        <form id="editForm" class="mt-3 d-none">
+            <div class="mb-3">
+                <label class="form-label">Số văn bản</label>
+                <input type="text" class="form-control" id="editSoVanBan">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Nơi nhận</label>
+                <input type="text" class="form-control" id="editNoiNhan">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Người ký</label>
+                <input type="text" class="form-control" id="editNguoiKy">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Ngày ký</label>
+                <input type="date" class="form-control" id="editNgayKy">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Bộ phận phát hành</label>
+                <input type="text" class="form-control" id="editBoPhanPhatHanh">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Ngày phát hành</label>
+                <input type="date" class="form-control" id="editNgayPhatHanh">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Loại văn bản</label>
+                <input type="text" class="form-control" id="editLoaiVanBan">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Người xử lý</label>
+                <input type="text" class="form-control" id="editNguoiXuLy">
+            </div>
+            <button type="submit" class="btn btn-primary">Lưu</button>
+            <button type="button" class="btn btn-secondary" id="cancelEdit">Hủy</button>
+        </form>
+
+        <a href="/outgoingdocuments.html" class="btn btn-secondary mt-3">Quay lại</a>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const documentId = urlParams.get('id');
+
+        const documents = {
+            "1": { soVanBan: "01/5/NV/BD", noiNhan: "Đơn vị trực thuộc", nguoiKy: "Nguyễn Thị Thu", ngayKy: "2023-04-20", boPhanPhatHanh: "Kinh doanh", ngayPhatHanh: "2023-04-22", loaiVanBan: "Đề nghị", nguoiXuLy: "Giám đốc Công ty" },
+            "2": { soVanBan: "02/5/NV/BD", noiNhan: "UBND Thành phố", nguoiKy: "Trần Văn A", ngayKy: "2023-04-21", boPhanPhatHanh: "Pháp chế", ngayPhatHanh: "2023-04-23", loaiVanBan: "Quyết định", nguoiXuLy: "Phó Giám đốc" }
+        };
+
+        if (documents[documentId]) {
+            let doc = documents[documentId];
+            $("#soVanBan").text(doc.soVanBan);
+            $("#noiNhan").text(doc.noiNhan);
+            $("#nguoiKy").text(doc.nguoiKy);
+            $("#ngayKy").text(doc.ngayKy);
+            $("#boPhanPhatHanh").text(doc.boPhanPhatHanh);
+            $("#ngayPhatHanh").text(doc.ngayPhatHanh);
+            $("#loaiVanBan").text(doc.loaiVanBan);
+            $("#nguoiXuLy").text(doc.nguoiXuLy);
+        }
+
+        $("#editButton").click(function() {
+            let doc = documents[documentId];
+            $("#editSoVanBan").val(doc.soVanBan);
+            $("#editNoiNhan").val(doc.noiNhan);
+            $("#editNguoiKy").val(doc.nguoiKy);
+            $("#editNgayKy").val(doc.ngayKy);
+            $("#editBoPhanPhatHanh").val(doc.boPhanPhatHanh);
+            $("#editNgayPhatHanh").val(doc.ngayPhatHanh);
+            $("#editLoaiVanBan").val(doc.loaiVanBan);
+            $("#editNguoiXuLy").val(doc.nguoiXuLy);
+            
+            $("#documentDetails").hide();
+            $("#editForm").removeClass("d-none");
+        });
+
+        $("#cancelEdit").click(function() {
+            $("#documentDetails").show();
+            $("#editForm").addClass("d-none");
+        });
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.5/font/bootstrap-icons.min.js"></script>
+</body>
+</html>
