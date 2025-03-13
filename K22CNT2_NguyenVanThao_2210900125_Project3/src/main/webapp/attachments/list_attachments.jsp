@@ -1,8 +1,12 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ page import="model.User,java.sql.*,java.util.ArrayList,java.util.List,model.NVTDocument" %>
 <%@ page session="true" %>
+<%@ page import="java.util.List,model.NVTAttachment" %>
 
-<%@ page import="java.util.List,model.DocumentOutgoing" %>
+<%
+    List<NVTAttachment> attachments = (List<NVTAttachment>) request.getAttribute("attachments");
+%>
+
   <!DOCTYPE html>
   <html lang="en">
     <head>
@@ -55,7 +59,7 @@
 	          <div class="sidebar-logo">
 	            <!-- Logo Header -->
 	            <div class="logo-header" data-background-color="dark">
-	              <a href="index.jsp" class="logo">
+	              <a href="index.html" class="logo">
 	                <h5 style="color: aliceblue; margin: auto;">Quản Lý Công Văn</h5>
 	              </a>
 	              <div class="nav-toggle">
@@ -162,11 +166,11 @@
 	                    </a>
 	                </li>
 	                
-	                <!--Xử lý đăng nhập khi ấn vào menu  -->
-	                <script>
+	                <!-- Xử lý đăng nhập khi ấn vào menu -->
+					<script>
 					    function checkLogin(targetPage, isAdminRequired = false) {
-					        var roleId = "<%= session.getAttribute("roleId") != null ? session.getAttribute("roleId") : "" %>";
-					        roleId = parseInt(roleId) || 0; // Convertir en entier, 0 si null
+					        var roleId = "<%= session.getAttribute("roleId") != null ? session.getAttribute("roleId") : "0" %>";
+					        roleId = parseInt(roleId); // Chuyển thành số nguyên
 					
 					        if (roleId === 0) {
 					            alert("Vui lòng đăng nhập để tiếp tục!");
@@ -174,11 +178,12 @@
 					            return false;
 					        }
 					
-					        // Rediriger si l'utilisateur est connecté
+					        // Chuyển hướng đến trang đích nếu đủ điều kiện
 					        window.location.href = "<%= request.getContextPath() %>/" + targetPage;
 					        return false;
 					    }
 					</script>
+
 	              </ul>
 	            </div>
 	          </div>
@@ -436,209 +441,97 @@
 	            <img src="./assets/img/AI-qlcv.webp" alt="Header Image">
 	        </div>
 	        
-	       <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addDocumentModal">
-			    Thêm Công Văn
-			</button>
-	       <table class="table table-bordered table-striped table-hover">
+	        <table class="table table-bordered table-striped table-hover">
             <thead>
                 <tr>
                     <th>ID</th>
-                    <th>Mã</th>
-                    <th>Tiêu Đề</th>
-                    <th>Ngày Gửi</th>
-                    <th>Trạng Thái</th>
-                    <th>Người Tạo</th>
-                    <th>Tệp Đính Kèm</th>
-                    <th>Hành Động</th>
+                    <th>Tên File</th>
+                    <th>Tên Tài Liệu</th>
+                    <th>Hành động</th>
                 </tr>
             </thead>
             <tbody>
-                <%
-                List<DocumentOutgoing> documents = (List<DocumentOutgoing>) request.getAttribute("outgoingDocuments");
-                if (documents != null) {
-                    for (DocumentOutgoing doc : documents) {
-                %>
-                <tr>
-                    <td><%= doc.getId() %></td>
-                    <td><%= doc.getCode() %></td>
-                    <td><%= doc.getTitle() %></td>
-                    <td><%= doc.getSentDate() %></td>
-                    <td>
-						    <%
-						        String status = doc.getStatus();
-						        String statusVietnamese = "";
-						        switch (status) {
-						            case "Pending":
-						                statusVietnamese = "Chờ xử lý";
-						                break;
-						            case "Processing":
-						                statusVietnamese = "Đang xử lý";
-						                break;
-						            case "Completed":
-						                statusVietnamese = "Hoàn thành";
-						                break;
-						            case "Received":
-						                statusVietnamese = "Đã nhận";
-						                break;
-						            default:
-						                statusVietnamese = "Không xác định";
-						        }
-						    %>
-						    <%= statusVietnamese %>
-						</td>
-                    <td><%= doc.getCreatedBy() %></td>
-                    <td>
-                        <% if (doc.getFile() != null && !doc.getFile().isEmpty()) { %>
-                            <a href="<%= doc.getFile() %>" target="_blank">Tải Xuống</a>
-                        <% } else { %>
-                            Không Có Tệp
-                        <% } %>
-                    </td>
-                    <td>
-                        <button class="btn btn-warning " onclick="openEditModal('<%= doc.getId() %>', '<%= doc.getCode() %>', '<%= doc.getTitle() %>', '<%= doc.getContent() %>', '<%= doc.getSentDate() %>', '<%= doc.getStatus() %>', '<%= doc.getCreatedBy() %>', '<%= doc.getFile() %>')">
-						    Sửa
-						</button>
-                        <a href="delete-document?id=<%= doc.getId() %>" class="btn btn-danger" onclick="return confirm('Bạn có chắc chắn muốn xóa công văn này?')">Xóa</a>
-                    </td>
-                </tr>
-                <%
-                    }
+                <% if (attachments != null && !attachments.isEmpty()) {
+                    for (NVTAttachment att : attachments) { %>
+                        <tr>
+                            <td><%= att.getAttachmentId() %></td>
+                            <td>📄 <%= att.getFileName() %>
+                            </td>
+                            <td><%= att.getDocumentTitle() %></td>
+                            <td>
+							    <a class="btn btn-primary" href="<%= att.getFilePath() %>" download>Tải xuống</a>
+							    <button class="btn btn-warning edit-btn" 
+							        data-bs-toggle="modal" 
+							        data-bs-target="#editAttachmentModal"
+							        data-id="<%= att.getAttachmentId() %>">
+							        Sửa
+							    </button>
+							    <a class="btn btn-danger" href="NVTDeleteAttachment?attachmentId=<%= att.getAttachmentId() %>"
+							       onclick="return confirm('Bạn có chắc muốn xóa file này?');">Xóa</a>
+							</td>
+
+
+                        </tr>
+                    <% }
                 } else { %>
-                <tr>
-                    <td colspan="8" class="text-center text-danger fw-bold">Không có dữ liệu.</td>
-                </tr>
+                    <tr>
+                        <td colspan="4" style="text-align: center;">Không có file đính kèm nào.</td>
+                    </tr>
                 <% } %>
             </tbody>
         </table>
-        <!-- Modal -->
-		<div class="modal fade" id="addDocumentModal" tabindex="-1" aria-labelledby="addDocumentModalLabel" aria-hidden="true">
-		    <div class="modal-dialog">
-		        <div class="modal-content">
-		            <div class="modal-header">
-		                <h5 class="modal-title" id="addDocumentModalLabel">Thêm Công Văn Đi</h5>
-		                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-		            </div>
-		            <div class="modal-body">
-		                <form id="addDocumentForm" action="/K22CNT2_NguyenVanThao_2210900125_Project3/add-document" method="post" enctype="multipart/form-data">
-		                    <div class="mb-3">
-		                        <label class="form-label">Mã Công Văn:</label>
-		                        <input type="text" name="code" class="form-control" required>
-		                    </div>
-		
-		                    <div class="mb-3">
-		                        <label class="form-label">Tiêu Đề:</label>
-		                        <input type="text" name="title" class="form-control" required>
-		                    </div>
-		
-		                    <div class="mb-3">
-		                        <label class="form-label">Nội Dung:</label>
-		                        <textarea name="content" class="form-control" required></textarea>
-		                    </div>
-		
-		                    <div class="mb-3">
-		                        <label class="form-label">Ngày Gửi:</label>
-		                        <input type="date" name="sentDate" class="form-control" required>
-		                    </div>
-		
-		                    <div class="mb-3">
-		                        <label class="form-label">Trạng Thái:</label>
-		                        <select name="status" class="form-select">
-		                            <option value="Pending">Chờ xử lý</option>
-		                            <option value="Processing">Đang xử lý</option>
-		                            <option value="Completed">Hoàn thành</option>
-		                            <option value="Sent">Đã gửi</option>
-		                        </select>
-		                    </div>
-		
-		                    <div class="mb-3">
-		                        <label class="form-label">Người Tạo (Mã Người Dùng):</label>
-		                        <select name="createdBy" class="form-select" required>
-		                            <option value="1">1</option>
-		                            <option value="2">2</option>
-		                        </select>
-		                    </div>
-		
-		                    <div class="mb-3">
-		                        <label class="form-label">Đính Kèm Tệp:</label>
-		                        <input type="file" name="file" class="form-control">
-		                    </div>
-		                </form>
-		            </div>
-		            <div class="modal-footer">
-		                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-		                <button type="submit" class="btn btn-success" form="addDocumentForm">Thêm Công Văn</button>
-		            </div>
-		        </div>
-		    </div>
-		</div>
-		<!-- Modal Edit Document -->
-		<div class="modal fade" id="editDocumentModal" tabindex="-1" aria-labelledby="editDocumentModalLabel" aria-hidden="true">
-		    <div class="modal-dialog">
-		        <div class="modal-content">
-		            <div class="modal-header">
-		                <h5 class="modal-title">Chỉnh sửa công văn đi</h5>
-		                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-		            </div>
-		            <form id="editDocumentForm" action="update-document" method="post" enctype="multipart/form-data">
-		                <div class="modal-body">
-		                    <input type="hidden" id="editId" name="id">
-		
-		                    <label for="editCode">Mã công văn:</label>
-		                    <input type="text" id="editCode" name="code" class="form-control" required>
-		
-		                    <label for="editTitle">Tiêu đề:</label>
-		                    <input type="text" id="editTitle" name="title" class="form-control" required>
-		
-		                    <label for="editContent">Nội dung:</label>
-		                    <textarea id="editContent" name="content" class="form-control" required></textarea>
-		
-		                    <label for="editSentDate">Ngày gửi:</label>
-		                    <input type="date" id="editSentDate" name="sentDate" class="form-control" required>
-		
-		                    <label for="editStatus">Trạng thái:</label>
-		                    <select id="editStatus" name="status" class="form-control">
-		                        <option value="Pending">Chờ xử lý</option>
-		                        <option value="Processing">Đang xử lý</option>
-		                        <option value="Completed">Hoàn thành</option>
-		                        <option value="Received">Đã nhận</option>
-		                    </select>
-		
-		                    <label for="editCreatedBy">Người tạo:</label>
-		                    <input type="number" id="editCreatedBy" name="createdBy" class="form-control" required>
-		
-		                    <label for="editFile">Tệp đính kèm:</label>
-		                    <input type="file" id="editFile" name="file" class="form-control">
-		
-		                    <p id="currentFile"></p>
-		                </div>
-		                <div class="modal-footer">
-		                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-		                    <button type="submit" class="btn btn-primary">Cập nhật</button>
-		                </div>
-		            </form>
-		        </div>
-		    </div>
-		</div>
-		<script>
-			function openEditModal(id, code, title, content, sentDate, status, createdBy, file) {
-			    document.getElementById("editId").value = id;
-			    document.getElementById("editCode").value = code;
-			    document.getElementById("editTitle").value = title;
-			    document.getElementById("editContent").value = content;
-			    document.getElementById("editSentDate").value = sentDate;
-			    document.getElementById("editStatus").value = status;
-			    document.getElementById("editCreatedBy").value = createdBy;
-	
-			    // Hiển thị file hiện tại nếu có
-			    let fileText = file ? `<a href="${file}" target="_blank">Xem file hiện tại</a>` : "Không có file đính kèm";
-			    document.getElementById("currentFile").innerHTML = fileText;
-	
-			    // Mở modal
-			    var editModal = new bootstrap.Modal(document.getElementById('editDocumentModal'));
-			    editModal.show();
-			}
-		</script>
-		
+        <!-- Modal chỉnh sửa file đính kèm -->
+<div class="modal fade" id="editAttachmentModal" tabindex="-1" aria-labelledby="editAttachmentLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editAttachmentLabel">Chỉnh Sửa File Đính Kèm</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="editAttachmentForm" method="post" action="NVTEditAttachment" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <input type="hidden" id="editAttachmentId" name="attachmentId">
+                    
+                    <div class="mb-3">
+                        <label for="editFile" class="form-label">Chọn file mới</label>
+                        <input type="file" class="form-control" id="editFile" name="file" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+        <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Lắng nghe sự kiện khi nhấn nút "Chỉnh sửa"
+            document.querySelectorAll(".edit-btn").forEach(button => {
+                button.addEventListener("click", function () {
+                    let attachmentId = this.getAttribute("data-id");
+                    document.getElementById("editAttachmentId").value = attachmentId;
+
+                    // Reset file input để tránh lỗi khi chọn file trước đó
+                    document.getElementById("editFile").value = "";
+                });
+            });
+
+            // Lắng nghe sự kiện submit form
+            document.getElementById("editAttachmentForm").addEventListener("submit", function (e) {
+                let fileInput = document.getElementById("editFile");
+                if (fileInput.files.length === 0) {
+                    e.preventDefault();
+                    alert("Vui lòng chọn một file trước khi lưu!");
+                }
+            });
+        });
+
+</script>
+
+        
 
       <!--   Core JS Files   -->
       <script src="assets/js/core/jquery-3.7.1.min.js"></script>

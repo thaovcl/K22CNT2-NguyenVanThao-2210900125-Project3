@@ -30,9 +30,12 @@ public class UpdateIncomingDocumentServlet extends HttpServlet {
             String code = request.getParameter("code");
             String title = request.getParameter("title");
             String content = request.getParameter("content");
-            Date receivedDate = Date.valueOf(request.getParameter("receivedDate"));
+            String receivedDateStr = request.getParameter("receivedDate");
+            Date receivedDate = (receivedDateStr != null && !receivedDateStr.isEmpty()) ? Date.valueOf(receivedDateStr) : null;
             String status = request.getParameter("status");
-            int createdBy = Integer.parseInt(request.getParameter("createdBy"));
+            String createdByStr = request.getParameter("createdBy");
+            int createdBy = (createdByStr != null && !createdByStr.isEmpty()) ? Integer.parseInt(createdByStr) : 0;
+
 
             // Lấy tài liệu cũ từ database
             DocumentIncoming existingDoc = documentDAO.getDocumentById(id);

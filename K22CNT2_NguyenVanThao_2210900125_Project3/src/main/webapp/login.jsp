@@ -28,9 +28,12 @@
 
                 <button type="submit" class="form-submit">Đăng nhập</button>
 
-                <div class="forgot-password">
-                    <a href="#">Quên mật khẩu?</a>
-                </div>
+                <div class="back-forgot-container">
+				    <a href="index.jsp" class="back-button">← Quay lại</a>
+				    <div class="forgot-password">
+				        <a href="#">Quên mật khẩu?</a>
+				    </div>
+				</div>
             </form>
         </div>
     </div>

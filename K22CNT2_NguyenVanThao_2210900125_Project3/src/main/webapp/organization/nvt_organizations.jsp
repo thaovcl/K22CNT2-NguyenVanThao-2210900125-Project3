@@ -2,7 +2,8 @@
 <%@ page import="model.User,java.sql.*,java.util.ArrayList,java.util.List,model.NVTDocument" %>
 <%@ page session="true" %>
 
-<%@ page import="java.util.List,model.DocumentOutgoing" %>
+<%@ page import="java.util.List" %>
+<%@ page import="model.NVTOrganization" %>
   <!DOCTYPE html>
   <html lang="en">
     <head>
@@ -55,7 +56,7 @@
 	          <div class="sidebar-logo">
 	            <!-- Logo Header -->
 	            <div class="logo-header" data-background-color="dark">
-	              <a href="index.jsp" class="logo">
+	              <a href="index.html" class="logo">
 	                <h5 style="color: aliceblue; margin: auto;">Quản Lý Công Văn</h5>
 	              </a>
 	              <div class="nav-toggle">
@@ -76,7 +77,7 @@
 	            <div class="sidebar-content">
 	              <ul class="nav nav-secondary">
 	                <li class="nav-item active">
-	                  <a href="index.jsp" class="collapsed" aria-expanded="false">
+	                  <a  href="index.jsp" class="collapsed" aria-expanded="false">
 	                      <i class="fas fa-home"></i>
 	                      <p>Trang chủ</p>
 	                  </a>
@@ -162,11 +163,11 @@
 	                    </a>
 	                </li>
 	                
-	                <!--Xử lý đăng nhập khi ấn vào menu  -->
-	                <script>
+	                <!-- Xử lý đăng nhập khi ấn vào menu -->
+					<script>
 					    function checkLogin(targetPage, isAdminRequired = false) {
-					        var roleId = "<%= session.getAttribute("roleId") != null ? session.getAttribute("roleId") : "" %>";
-					        roleId = parseInt(roleId) || 0; // Convertir en entier, 0 si null
+					        var roleId = "<%= session.getAttribute("roleId") != null ? session.getAttribute("roleId") : "0" %>";
+					        roleId = parseInt(roleId); // Chuyển thành số nguyên
 					
 					        if (roleId === 0) {
 					            alert("Vui lòng đăng nhập để tiếp tục!");
@@ -174,7 +175,7 @@
 					            return false;
 					        }
 					
-					        // Rediriger si l'utilisateur est connecté
+					        // Chuyển hướng đến trang đích nếu đủ điều kiện
 					        window.location.href = "<%= request.getContextPath() %>/" + targetPage;
 					        return false;
 					    }
@@ -436,209 +437,107 @@
 	            <img src="./assets/img/AI-qlcv.webp" alt="Header Image">
 	        </div>
 	        
-	       <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addDocumentModal">
-			    Thêm Công Văn
+	        <!-- Nút Mở Modal -->
+			<button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addOrganizationModal">
+			    + Thêm Đơn Vị
 			</button>
-	       <table class="table table-bordered table-striped table-hover">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Mã</th>
-                    <th>Tiêu Đề</th>
-                    <th>Ngày Gửi</th>
-                    <th>Trạng Thái</th>
-                    <th>Người Tạo</th>
-                    <th>Tệp Đính Kèm</th>
-                    <th>Hành Động</th>
-                </tr>
-            </thead>
-            <tbody>
-                <%
-                List<DocumentOutgoing> documents = (List<DocumentOutgoing>) request.getAttribute("outgoingDocuments");
-                if (documents != null) {
-                    for (DocumentOutgoing doc : documents) {
-                %>
-                <tr>
-                    <td><%= doc.getId() %></td>
-                    <td><%= doc.getCode() %></td>
-                    <td><%= doc.getTitle() %></td>
-                    <td><%= doc.getSentDate() %></td>
-                    <td>
-						    <%
-						        String status = doc.getStatus();
-						        String statusVietnamese = "";
-						        switch (status) {
-						            case "Pending":
-						                statusVietnamese = "Chờ xử lý";
-						                break;
-						            case "Processing":
-						                statusVietnamese = "Đang xử lý";
-						                break;
-						            case "Completed":
-						                statusVietnamese = "Hoàn thành";
-						                break;
-						            case "Received":
-						                statusVietnamese = "Đã nhận";
-						                break;
-						            default:
-						                statusVietnamese = "Không xác định";
-						        }
-						    %>
-						    <%= statusVietnamese %>
-						</td>
-                    <td><%= doc.getCreatedBy() %></td>
-                    <td>
-                        <% if (doc.getFile() != null && !doc.getFile().isEmpty()) { %>
-                            <a href="<%= doc.getFile() %>" target="_blank">Tải Xuống</a>
-                        <% } else { %>
-                            Không Có Tệp
-                        <% } %>
-                    </td>
-                    <td>
-                        <button class="btn btn-warning " onclick="openEditModal('<%= doc.getId() %>', '<%= doc.getCode() %>', '<%= doc.getTitle() %>', '<%= doc.getContent() %>', '<%= doc.getSentDate() %>', '<%= doc.getStatus() %>', '<%= doc.getCreatedBy() %>', '<%= doc.getFile() %>')">
-						    Sửa
-						</button>
-                        <a href="delete-document?id=<%= doc.getId() %>" class="btn btn-danger" onclick="return confirm('Bạn có chắc chắn muốn xóa công văn này?')">Xóa</a>
-                    </td>
-                </tr>
-                <%
-                    }
-                } else { %>
-                <tr>
-                    <td colspan="8" class="text-center text-danger fw-bold">Không có dữ liệu.</td>
-                </tr>
-                <% } %>
-            </tbody>
-        </table>
-        <!-- Modal -->
-		<div class="modal fade" id="addDocumentModal" tabindex="-1" aria-labelledby="addDocumentModalLabel" aria-hidden="true">
-		    <div class="modal-dialog">
-		        <div class="modal-content">
-		            <div class="modal-header">
-		                <h5 class="modal-title" id="addDocumentModalLabel">Thêm Công Văn Đi</h5>
-		                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-		            </div>
-		            <div class="modal-body">
-		                <form id="addDocumentForm" action="/K22CNT2_NguyenVanThao_2210900125_Project3/add-document" method="post" enctype="multipart/form-data">
-		                    <div class="mb-3">
-		                        <label class="form-label">Mã Công Văn:</label>
-		                        <input type="text" name="code" class="form-control" required>
-		                    </div>
-		
-		                    <div class="mb-3">
-		                        <label class="form-label">Tiêu Đề:</label>
-		                        <input type="text" name="title" class="form-control" required>
-		                    </div>
-		
-		                    <div class="mb-3">
-		                        <label class="form-label">Nội Dung:</label>
-		                        <textarea name="content" class="form-control" required></textarea>
-		                    </div>
-		
-		                    <div class="mb-3">
-		                        <label class="form-label">Ngày Gửi:</label>
-		                        <input type="date" name="sentDate" class="form-control" required>
-		                    </div>
-		
-		                    <div class="mb-3">
-		                        <label class="form-label">Trạng Thái:</label>
-		                        <select name="status" class="form-select">
-		                            <option value="Pending">Chờ xử lý</option>
-		                            <option value="Processing">Đang xử lý</option>
-		                            <option value="Completed">Hoàn thành</option>
-		                            <option value="Sent">Đã gửi</option>
-		                        </select>
-		                    </div>
-		
-		                    <div class="mb-3">
-		                        <label class="form-label">Người Tạo (Mã Người Dùng):</label>
-		                        <select name="createdBy" class="form-select" required>
-		                            <option value="1">1</option>
-		                            <option value="2">2</option>
-		                        </select>
-		                    </div>
-		
-		                    <div class="mb-3">
-		                        <label class="form-label">Đính Kèm Tệp:</label>
-		                        <input type="file" name="file" class="form-control">
-		                    </div>
-		                </form>
-		            </div>
-		            <div class="modal-footer">
-		                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-		                <button type="submit" class="btn btn-success" form="addDocumentForm">Thêm Công Văn</button>
-		            </div>
-		        </div>
-		    </div>
-		</div>
-		<!-- Modal Edit Document -->
-		<div class="modal fade" id="editDocumentModal" tabindex="-1" aria-labelledby="editDocumentModalLabel" aria-hidden="true">
-		    <div class="modal-dialog">
-		        <div class="modal-content">
-		            <div class="modal-header">
-		                <h5 class="modal-title">Chỉnh sửa công văn đi</h5>
-		                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-		            </div>
-		            <form id="editDocumentForm" action="update-document" method="post" enctype="multipart/form-data">
-		                <div class="modal-body">
-		                    <input type="hidden" id="editId" name="id">
-		
-		                    <label for="editCode">Mã công văn:</label>
-		                    <input type="text" id="editCode" name="code" class="form-control" required>
-		
-		                    <label for="editTitle">Tiêu đề:</label>
-		                    <input type="text" id="editTitle" name="title" class="form-control" required>
-		
-		                    <label for="editContent">Nội dung:</label>
-		                    <textarea id="editContent" name="content" class="form-control" required></textarea>
-		
-		                    <label for="editSentDate">Ngày gửi:</label>
-		                    <input type="date" id="editSentDate" name="sentDate" class="form-control" required>
-		
-		                    <label for="editStatus">Trạng thái:</label>
-		                    <select id="editStatus" name="status" class="form-control">
-		                        <option value="Pending">Chờ xử lý</option>
-		                        <option value="Processing">Đang xử lý</option>
-		                        <option value="Completed">Hoàn thành</option>
-		                        <option value="Received">Đã nhận</option>
-		                    </select>
-		
-		                    <label for="editCreatedBy">Người tạo:</label>
-		                    <input type="number" id="editCreatedBy" name="createdBy" class="form-control" required>
-		
-		                    <label for="editFile">Tệp đính kèm:</label>
-		                    <input type="file" id="editFile" name="file" class="form-control">
-		
-		                    <p id="currentFile"></p>
-		                </div>
-		                <div class="modal-footer">
-		                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-		                    <button type="submit" class="btn btn-primary">Cập nhật</button>
-		                </div>
-		            </form>
-		        </div>
-		    </div>
-		</div>
-		<script>
-			function openEditModal(id, code, title, content, sentDate, status, createdBy, file) {
-			    document.getElementById("editId").value = id;
-			    document.getElementById("editCode").value = code;
-			    document.getElementById("editTitle").value = title;
-			    document.getElementById("editContent").value = content;
-			    document.getElementById("editSentDate").value = sentDate;
-			    document.getElementById("editStatus").value = status;
-			    document.getElementById("editCreatedBy").value = createdBy;
-	
-			    // Hiển thị file hiện tại nếu có
-			    let fileText = file ? `<a href="${file}" target="_blank">Xem file hiện tại</a>` : "Không có file đính kèm";
-			    document.getElementById("currentFile").innerHTML = fileText;
-	
-			    // Mở modal
-			    var editModal = new bootstrap.Modal(document.getElementById('editDocumentModal'));
-			    editModal.show();
-			}
-		</script>
-		
+	        <table class="table table-bordered table-striped table-hover">
+		        <tr>
+		            <th>ID</th>
+		            <th>Tên Đơn vị</th>
+		            <th>Hành động</th>
+		        </tr>
+		        <%
+				    List<NVTOrganization> organizations = (List<NVTOrganization>) request.getAttribute("organizations");
+				    if (organizations != null) {
+				        for (NVTOrganization org : organizations) {
+				%>
+				<tr>
+				    <td><%= org.getOrganizationID() %></td>
+				    <td><%= org.getOrganizationName() %></td>
+				    <td>
+				        <button class="btn btn-warning edit-btn"
+				            data-id="<%= org.getOrganizationID() %>"
+				            data-name="<%= org.getOrganizationName() %>">
+				            Sửa
+				        </button>
+				        |
+				        <a class="btn btn-danger" href="NVTDeleteOrganization?id=<%= org.getOrganizationID() %>" onclick="return confirm('Bạn có chắc muốn xóa?');">Xóa</a>
+				    </td>
+				</tr>
+				<%
+				        }
+				    }
+				%>
+		    </table>
+		    <!-- Modal Thêm Đơn Vị -->
+			<div class="modal fade" id="addOrganizationModal" tabindex="-1" aria-labelledby="addOrganizationLabel" aria-hidden="true">
+			    <div class="modal-dialog">
+			        <div class="modal-content">
+			            <div class="modal-header">
+			                <h5 class="modal-title" id="addOrganizationLabel">Thêm Đơn Vị Gửi/Nhận</h5>
+			                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			            </div>
+			            <form id="addOrganizationForm" method="post" action="/K22CNT2_NguyenVanThao_2210900125_Project3/NVTAddOrganization">
+			                <div class="modal-body">
+			                    <div class="mb-3">
+			                        <label for="organizationName" class="form-label">Tên Đơn Vị</label>
+			                        <input type="text" class="form-control" id="organizationName" name="organizationName" required>
+			                    </div>
+			                </div>
+			                <div class="modal-footer">
+			                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+			                    <button type="submit" class="btn btn-primary">Thêm</button>
+			                </div>
+			            </form>
+			        </div>
+			    </div>
+			</div>
+			   <!-- Modal Chỉnh Sửa Đơn Vị -->
+			<div class="modal fade" id="editOrganizationModal" tabindex="-1" aria-labelledby="editOrganizationLabel" aria-hidden="true">
+			    <div class="modal-dialog">
+			        <div class="modal-content">
+			            <div class="modal-header">
+			                <h5 class="modal-title" id="editOrganizationLabel">Chỉnh Sửa Đơn Vị</h5>
+			                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			            </div>
+			            <form id="editOrganizationForm" method="post" action="/K22CNT2_NguyenVanThao_2210900125_Project3/NVTUpdateOrganization">
+			                <div class="modal-body">
+			                    <input type="hidden" id="editOrganizationId" name="organizationID">
+			                    
+			                    <div class="mb-3">
+			                        <label for="editOrganizationName" class="form-label">Tên Đơn Vị</label>
+			                        <input type="text" class="form-control" id="editOrganizationName" name="organizationName" required>
+			                    </div>
+			                </div>
+			                <div class="modal-footer">
+			                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+			                    <button type="submit" class="btn btn-primary">Lưu Thay Đổi</button>
+			                </div>
+			            </form>
+			        </div>
+			    </div>
+			</div>
+			
+			<!-- JavaScript Để Mở Modal & Đổ Dữ Liệu -->
+			<script>
+			    document.addEventListener("DOMContentLoaded", function () {
+			        let editButtons = document.querySelectorAll(".edit-btn");
+			
+			        editButtons.forEach(button => {
+			            button.addEventListener("click", function () {
+			                let organizationId = this.getAttribute("data-id");
+			                let organizationName = this.getAttribute("data-name");
+			
+			                document.getElementById("editOrganizationId").value = organizationId;
+			                document.getElementById("editOrganizationName").value = organizationName;
+			
+			                let editModal = new bootstrap.Modal(document.getElementById("editOrganizationModal"));
+			                editModal.show();
+			            });
+			        });
+			    });
+			</script>
 
       <!--   Core JS Files   -->
       <script src="assets/js/core/jquery-3.7.1.min.js"></script>
@@ -707,4 +606,3 @@
       </script>
     </body>
   </html>
-

@@ -3,7 +3,7 @@ package model;
 import java.sql.Date;
 import java.sql.Timestamp;
 
-public class Document {
+public class NVTDocument {
     private int documentID;
     private String documentCode;
     private String title;

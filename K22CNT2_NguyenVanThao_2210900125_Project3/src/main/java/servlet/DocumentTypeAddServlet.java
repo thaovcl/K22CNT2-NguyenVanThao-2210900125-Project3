@@ -13,9 +13,16 @@ import java.io.IOException;
 public class DocumentTypeAddServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String typeName = request.getParameter("typeName");
+        String documentType = request.getParameter("documentType"); // Lấy giá trị Incoming / Outgoing
+
+        // Kiểm tra nếu giá trị documentType hợp lệ
+        if (!"Incoming".equals(documentType) && !"Outgoing".equals(documentType)) {
+            response.sendRedirect(request.getContextPath() + "/document-types?error=InvalidType");
+            return;
+        }
 
         DocumentTypeDAO documentTypeDAO = new DocumentTypeDAO();
-        documentTypeDAO.addDocumentType(typeName);
+        documentTypeDAO.addDocumentType(typeName, documentType);
 
         response.sendRedirect(request.getContextPath() + "/document-types");
     }

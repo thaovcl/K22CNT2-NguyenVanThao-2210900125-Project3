@@ -20,4 +20,5 @@ public class IncomingDocumentServlet extends HttpServlet {
         request.setAttribute("incomingDocuments", incomingDocuments);
         request.getRequestDispatcher("/documents/incomingDocuments.jsp").forward(request, response);
     }
+    
 }
